@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            background: #f6f6f6;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container,
+        .container-edit {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 500px;
+            display: block;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        img {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: block;
+        }
+
+        h3 {
+            display: inline;
+            font-weight: bold;
+        }
+
+        hr {
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid #ccc;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .button {
+            background-color: #f2f2f2;
+            border: 1px solid #ccc;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .container-edit {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class='container'>
+        <h1 id='header'>User Profile</h1>
+        <img src='/pp2.jpg'>
+        Name: <h3 id='name'>Swostik Paneru</h3>
+        <hr>
+        Email: <h3 id='email'>swostik@example.com</h3>
+        <hr>
+        Interests: <h3 id='interests'>coding</h3>
+        <hr>
+        <button class='button' onclick='editProfile()'>Edit Profile</button>
+    </div>
+
+    <div class='container-edit'>
+        <h1 id='header'>User Profile</h1>
+        <img src='/pp2.jpg'>
+        Name: <input id='input-name' type='text' />
+        <hr>
+        Email: <input id='input-email' type='email'>
+        <hr>
+        Interests: <input id='input-interests' type='text'>
+        <hr>
+        <button class='button' onclick='saveProfile()'>Save Profile</button>
+    </div>
+
+    <script>
+        window.onload = async () => {
+            try {
+                console.log("Fetching profile data...");
+                const res = await fetch('/get-profile');
+                if (!res.ok) throw new Error("Failed to fetch profile");
+                const data = await res.json();
+                console.log("Profile data received:", data);
+
+                document.querySelector('#name').textContent = data.name || '';
+                document.querySelector('#email').textContent = data.email || '';
+                document.querySelector('#interests').textContent = data.interests || '';
+            } catch (err) {
+                console.error("Error loading profile:", err);
+            }
+        };
+
+        async function saveProfile() {
+            const name = document.querySelector('#input-name').value;
+            const email = document.querySelector('#input-email').value;
+            const interests = document.querySelector('#input-interests').value;
+
+            try {
+                console.log("Saving profile:", { name, email, interests });
+                const res = await fetch('/update-profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, interests }),
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || 'Failed to update profile');
+                }
+
+                const result = await res.json();
+                console.log(result.message);
+
+                document.querySelector('#name').textContent = name;
+                document.querySelector('#email').textContent = email;
+                document.querySelector('#interests').textContent = interests;
+
+                document.querySelector('.container').style.display = 'block';
+                document.querySelector('.container-edit').style.display = 'none';
+
+                alert("Profile updated successfully!");
+            } catch (err) {
+                console.error("Error saving profile:", err);
+                alert("Error saving profile: " + err.message);
+            }
+        }
+
+        function editProfile() {
+            document.querySelector('.container').style.display = 'none';
+            document.querySelector('.container-edit').style.display = 'block';
+
+            document.querySelector('#input-name').value = document.querySelector('#name').textContent;
+            document.querySelector('#input-email').value = document.querySelector('#email').textContent;
+            document.querySelector('#input-interests').value = document.querySelector('#interests').textContent;
+        }
+    </script>
+</body>
+
+</html>
